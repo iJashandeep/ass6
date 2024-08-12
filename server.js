@@ -183,10 +183,11 @@ app.use((req, res, next) => {
 legoData.initialize()
   .then(authData.initialize)
   .then(function() {
+    console.log("Initialization complete, starting the server...");
     app.listen(HTTP_PORT, function() {
-      console.log(`app listening on: ${HTTP_PORT}`);
+      console.log(`App listening on port ${HTTP_PORT}`);
     });
   })
   .catch(function(err) {
-    console.log(`unable to start server: ${err}`);
+    console.error("Unable to start server:", err);
   });
