@@ -185,6 +185,11 @@ app.use((req, res, next) => {
   res.status(404).render("404", { message: "I'm sorry, we're unable to find what you're looking for" });
 });
 
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
 legoData.initialize()
   .then(authData.initialize)
   .then(function() {
