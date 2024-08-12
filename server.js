@@ -11,7 +11,6 @@
 * Published URL: 
 *
 ********************************************************************************/
-
 const authData = require("./modules/auth-service.js");
 const clientSessions = require("client-sessions");
 const legoData = require("./modules/legoSets");
@@ -29,7 +28,7 @@ app.set('view engine', 'ejs');
 
 app.use(clientSessions({
   cookieName: "session",
-  secret: "fsefwo6LjQ5EVNC28Zg8ScpFQretregfdgbrshrth", 
+  secret: process.env.SESSION_SECRET || "defaultSecret", // Use environment variable for secret
   duration: 2 * 60 * 1000, // 2 minutes
   activeDuration: 1000 * 60 // 1 minute
 }));
@@ -38,7 +37,6 @@ app.use((req, res, next) => {
   res.locals.session = req.session;
   next();
 });
-
 
 function ensureLogin(req, res, next) {
   if (!req.session.user) {
@@ -52,7 +50,7 @@ function ensureLogin(req, res, next) {
 // Routes
 
 app.get('/', (req, res) => {
-  res.render("home")
+  res.render("home");
 });
 
 app.get('/about', (req, res) => {
@@ -186,21 +184,14 @@ app.use((req, res, next) => {
   res.status(404).render("404", { message: "I'm sorry, we're unable to find what you're looking for" });
 });
 
+// Initialize data and start server
 legoData.initialize()
   .then(authData.initialize)
   .then(function() {
-    app.listen(HTTP_PORT, function() {
-      console.log(`app listening on: ${HTTP_PORT}`);
-    });
+    console.log(`app listening on: ${HTTP_PORT}`);
   })
   .catch(function(err) {
     console.log(`unable to start server: ${err}`);
   });
 
-  /*legoData.initialize()
-  .then(() => {
-    console.log("LEGO data initialized successfully");
-  })
-  .catch((err) => {
-    console.error("Error initializing LEGO data:", err);
-  });*/
+module.exports = app; // Export app for Vercel to use
