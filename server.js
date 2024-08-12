@@ -39,7 +39,6 @@ app.use(clientSessions({
 }));
 
 app.use((req, res, next) => {
-  console.log(`Request Method: ${req.method}, Request URL: ${req.url}`);
   res.locals.session = req.session;
   next();
 });
@@ -77,7 +76,7 @@ app.get("/lego/sets", async (req, res) => {
     res.render("sets", { sets });
   } catch (err) {
     console.error("Error fetching sets:", err);
-    res.status(404).render("404", { message: err });
+    res.status(404).render("404", { message: err.message || "An error occurred while fetching sets" });
   }
 });
 
@@ -89,7 +88,7 @@ app.get("/lego/sets/:num", async (req, res) => {
     res.render("set", { set });
   } catch (err) {
     console.error("Error fetching set details:", err);
-    res.status(404).render("404", { message: err });
+    res.status(404).render("404", { message: err.message || "An error occurred while fetching set details" });
   }
 });
 
@@ -97,11 +96,11 @@ app.get('/lego/addSet', ensureLogin, (req, res) => {
   console.log("GET /lego/addSet - Rendering addSet form");
   legoData.getAllThemes()
       .then((themes) => {
-          res.render('addSet', { themes: themes });
+          res.render('addSet', { themes });
       })
       .catch((err) => {
           console.error("Error fetching themes:", err);
-          res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err}` });
+          res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err.message || "An error occurred while fetching themes"}` });
       });
 });
 
@@ -114,7 +113,7 @@ app.post('/lego/addSet', ensureLogin, (req, res) => {
       })
       .catch((err) => {
           console.error("Error adding set:", err);
-          res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err}` });
+          res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err.message || "An error occurred while adding the set"}` });
       });
 });
 
@@ -123,10 +122,10 @@ app.get('/lego/editSet/:num', ensureLogin, async (req, res) => {
   try {
     let setData = await legoData.getSetByNum(req.params.num);
     let themeData = await legoData.getAllThemes();
-    res.render("editSet", { "themes": themeData, "set": setData });
+    res.render("editSet", { themes: themeData, set: setData });
   } catch (err) {
     console.error("Error fetching set data for edit:", err);
-    res.status(404).render('404', { message: err });
+    res.status(404).render('404', { message: err.message || "An error occurred while fetching set data for edit" });
   }
 });
 
@@ -139,19 +138,20 @@ app.post('/lego/editSet', ensureLogin, async (req, res) => {
     res.redirect('/lego/sets');
   } catch (err) {
     console.error("Error updating set:", err);
-    res.render('500', { message: `I'm sorry, but we have encountered the error: ${err}` });
+    res.render('500', { message: `I'm sorry, but we have encountered the error: ${err.message || "An error occurred while updating the set"}` });
   }
 });
 
 app.get("/lego/deleteSet/:num", ensureLogin, (req, res) => {
   console.log(`GET /lego/deleteSet/${req.params.num} - Deleting set`);
-  legoData.deleteSet(req.params.num).then(() => {
-    res.redirect("/lego/sets");
-  })
-  .catch((err) => {
-    console.error("Error deleting set:", err);
-    res.render("500", { message: `I'm sorry, but we have encountered the error: ${err}` });
-  });
+  legoData.deleteSet(req.params.num)
+    .then(() => {
+      res.redirect("/lego/sets");
+    })
+    .catch((err) => {
+      console.error("Error deleting set:", err);
+      res.render("500", { message: `I'm sorry, but we have encountered the error: ${err.message || "An error occurred while deleting the set"}` });
+    });
 });
 
 app.get("/login", (req, res) => {
@@ -172,31 +172,31 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   console.log("POST /register - Registering new user");
   authData.registerUser(req.body)
-  .then(() => {
+    .then(() => {
       res.render('register', { successMessage: "User created!" });
-  })
-  .catch((err) => {
+    })
+    .catch((err) => {
       console.error("Error registering user:", err);
-      res.render('register', { errorMessage: err, userName: req.body.userName, successMessage: "" });
-  });
+      res.render('register', { errorMessage: err.message || "An error occurred while registering the user", userName: req.body.userName, successMessage: "" });
+    });
 });
 
 app.post("/login", (req, res) => {
   console.log("POST /login - Logging in user");
   req.body.userAgent = req.get('User-Agent');
   authData.checkUser(req.body)
-  .then((user) => {
+    .then((user) => {
       req.session.user = {
-          userName: user.userName,
-          email: user.email,
-          loginHistory: user.loginHistory
+        userName: user.userName,
+        email: user.email,
+        loginHistory: user.loginHistory
       };
       res.redirect('/lego/sets');
-  })
-  .catch((err) => {
+    })
+    .catch((err) => {
       console.error("Error logging in user:", err);
-      res.render('login', { errorMessage: err, userName: req.body.userName });
-  });
+      res.render('login', { errorMessage: err.message || "An error occurred while logging in", userName: req.body.userName });
+    });
 });
 
 app.get("/logout", (req, res) => {
