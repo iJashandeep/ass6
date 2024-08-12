@@ -10,7 +10,8 @@
 *
 * Published URL:
 *
-********************************************************************************/const authData = require("./modules/auth-service.js");
+********************************************************************************/
+
 const authData = require("./modules/auth-service.js");
 const clientSessions = require("client-sessions");
 const legoData = require("./modules/legoSets");
