@@ -39,14 +39,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize LEGO data
-legoData.initialize()
-  .then(() => {
-    console.log("LEGO data initialized successfully");
-  })
-  .catch((err) => {
-    console.error("Error initializing LEGO data:", err);
-  });
 
 function ensureLogin(req, res, next) {
   if (!req.session.user) {
