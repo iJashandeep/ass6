@@ -43,6 +43,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// Initialize LEGO data
+legoData.initialize()
+  .then(() => {
+    console.log("LEGO data initialized successfully");
+  })
+  .catch((err) => {
+    console.error("Error initializing LEGO data:", err);
+  });
+
 function ensureLogin(req, res, next) {
   if (!req.session.user) {
     console.log("User not logged in, redirecting to /login");
@@ -76,7 +85,7 @@ app.get("/lego/sets", async (req, res) => {
     res.render("sets", { sets });
   } catch (err) {
     console.error("Error fetching sets:", err);
-    res.status(404).render("404", { message: err.message || "An error occurred while fetching sets" });
+    res.status(404).render("404", { message: err });
   }
 });
 
@@ -88,7 +97,7 @@ app.get("/lego/sets/:num", async (req, res) => {
     res.render("set", { set });
   } catch (err) {
     console.error("Error fetching set details:", err);
-    res.status(404).render("404", { message: err.message || "An error occurred while fetching set details" });
+    res.status(404).render("404", { message: err });
   }
 });
 
@@ -96,11 +105,11 @@ app.get('/lego/addSet', ensureLogin, (req, res) => {
   console.log("GET /lego/addSet - Rendering addSet form");
   legoData.getAllThemes()
       .then((themes) => {
-          res.render('addSet', { themes });
+          res.render('addSet', { themes: themes });
       })
       .catch((err) => {
           console.error("Error fetching themes:", err);
-          res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err.message || "An error occurred while fetching themes"}` });
+          res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err}` });
       });
 });
 
@@ -113,7 +122,7 @@ app.post('/lego/addSet', ensureLogin, (req, res) => {
       })
       .catch((err) => {
           console.error("Error adding set:", err);
-          res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err.message || "An error occurred while adding the set"}` });
+          res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err}` });
       });
 });
 
@@ -122,10 +131,10 @@ app.get('/lego/editSet/:num', ensureLogin, async (req, res) => {
   try {
     let setData = await legoData.getSetByNum(req.params.num);
     let themeData = await legoData.getAllThemes();
-    res.render("editSet", { themes: themeData, set: setData });
+    res.render("editSet", { "themes": themeData, "set": setData });
   } catch (err) {
     console.error("Error fetching set data for edit:", err);
-    res.status(404).render('404', { message: err.message || "An error occurred while fetching set data for edit" });
+    res.status(404).render('404', { message: err });
   }
 });
 
@@ -138,20 +147,19 @@ app.post('/lego/editSet', ensureLogin, async (req, res) => {
     res.redirect('/lego/sets');
   } catch (err) {
     console.error("Error updating set:", err);
-    res.render('500', { message: `I'm sorry, but we have encountered the error: ${err.message || "An error occurred while updating the set"}` });
+    res.render('500', { message: `I'm sorry, but we have encountered the error: ${err}` });
   }
 });
 
 app.get("/lego/deleteSet/:num", ensureLogin, (req, res) => {
   console.log(`GET /lego/deleteSet/${req.params.num} - Deleting set`);
-  legoData.deleteSet(req.params.num)
-    .then(() => {
-      res.redirect("/lego/sets");
-    })
-    .catch((err) => {
-      console.error("Error deleting set:", err);
-      res.render("500", { message: `I'm sorry, but we have encountered the error: ${err.message || "An error occurred while deleting the set"}` });
-    });
+  legoData.deleteSet(req.params.num).then(() => {
+    res.redirect("/lego/sets");
+  })
+  .catch((err) => {
+    console.error("Error deleting set:", err);
+    res.render("500", { message: `I'm sorry, but we have encountered the error: ${err}` });
+  });
 });
 
 app.get("/login", (req, res) => {
@@ -172,31 +180,31 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   console.log("POST /register - Registering new user");
   authData.registerUser(req.body)
-    .then(() => {
+  .then(() => {
       res.render('register', { successMessage: "User created!" });
-    })
-    .catch((err) => {
+  })
+  .catch((err) => {
       console.error("Error registering user:", err);
-      res.render('register', { errorMessage: err.message || "An error occurred while registering the user", userName: req.body.userName, successMessage: "" });
-    });
+      res.render('register', { errorMessage: err, userName: req.body.userName, successMessage: "" });
+  });
 });
 
 app.post("/login", (req, res) => {
   console.log("POST /login - Logging in user");
   req.body.userAgent = req.get('User-Agent');
   authData.checkUser(req.body)
-    .then((user) => {
+  .then((user) => {
       req.session.user = {
-        userName: user.userName,
-        email: user.email,
-        loginHistory: user.loginHistory
+          userName: user.userName,
+          email: user.email,
+          loginHistory: user.loginHistory
       };
       res.redirect('/lego/sets');
-    })
-    .catch((err) => {
+  })
+  .catch((err) => {
       console.error("Error logging in user:", err);
-      res.render('login', { errorMessage: err.message || "An error occurred while logging in", userName: req.body.userName });
-    });
+      res.render('login', { errorMessage: err, userName: req.body.userName });
+  });
 });
 
 app.get("/logout", (req, res) => {
@@ -212,24 +220,14 @@ app.get("/userHistory", ensureLogin, (req, res) => {
 
 app.use((req, res, next) => {
   console.log("404 - Page not found");
-  res.status(404).render("404", { message: "I'm sorry, we're unable to find what you're looking for" });
+  res.status(404).render("404", { message: "Page not found" });
 });
 
-// Start server
-console.log("Starting server initialization...");
-legoData.initialize()
-  .then(() => {
-    console.log("LEGO data initialized successfully.");
-    console.log("Starting authentication data initialization...");
-    return authData.initialize();
-  })
-  .then(() => {
-    console.log("Authentication data initialized successfully.");
-    console.log("Initialization complete, starting the server...");
-    app.listen(HTTP_PORT, () => {
-      console.log(`App listening on port ${HTTP_PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("Initialization error:", err);
-  });
+app.use((err, req, res, next) => {
+  console.error("500 - Server error:", err);
+  res.status(500).render("500", { message: "Server error" });
+});
+
+app.listen(HTTP_PORT, () => {
+  console.log(`Server listening on: ${HTTP_PORT}`);
+});
