@@ -194,7 +194,7 @@ app.use((req, res, next) => {
   res.status(404).render("404", { message: "I'm sorry, we're unable to find what you're looking for" });
 });
 
-legoData.initialize()
+/*legoData.initialize()
   .then(authData.initialize)
   .then(function() {
     app.listen(HTTP_PORT, function() {
@@ -203,12 +203,12 @@ legoData.initialize()
   })
   .catch(function(err) {
     console.log(`unable to start server: ${err}`);
-  });
+  });*/
 
-  /*legoData.initialize()
+  legoData.initialize()
   .then(() => {
     console.log("LEGO data initialized successfully");
   })
   .catch((err) => {
     console.error("Error initializing LEGO data:", err);
-  });*/
+  });
