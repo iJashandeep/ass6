@@ -39,6 +39,7 @@ app.use(clientSessions({
 }));
 
 app.use((req, res, next) => {
+  console.log(`Request Method: ${req.method}, Request URL: ${req.url}`);
   res.locals.session = req.session;
   next();
 });
