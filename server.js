@@ -11,6 +11,7 @@
 * Published URL:
 *
 ********************************************************************************/const authData = require("./modules/auth-service.js");
+const authData = require("./modules/auth-service.js");
 const clientSessions = require("client-sessions");
 const legoData = require("./modules/legoSets");
 const path = require("path");
@@ -20,14 +21,18 @@ require('pg'); // explicitly require the "pg" module
 
 const HTTP_PORT = process.env.PORT || 8080;
 
-app.set('views', __dirname + '/views'); // Setting the "views" Application Setting
-app.use(express.static(__dirname + '/public')); // Updating your "express.static()" Middleware
+// Setting the "views" Application Setting
+app.set('views', path.join(__dirname, 'views'));
+
+// Updating your "express.static()" Middleware
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
 
+// Configure client sessions
 app.use(clientSessions({
   cookieName: "session",
-  secret: "fsefwo6LjQ5EVNC28Zg8ScpFQretregfdgbrshrth", 
+  secret: process.env.SESSION_SECRET || "fsefwo6LjQ5EVNC28Zg8ScpFQretregfdgbrshrth", // Use environment variable for security
   duration: 2 * 60 * 1000, // 2 minutes
   activeDuration: 1000 * 60 // 1 minute
 }));
@@ -39,155 +44,190 @@ app.use((req, res, next) => {
 
 function ensureLogin(req, res, next) {
   if (!req.session.user) {
+    console.log("User not logged in, redirecting to /login");
     res.redirect("/login");
   } else {
     next();
   }
 }
 
+// Routes
 app.get('/', (req, res) => {
-  res.render("home")
+  console.log("GET / - Rendering home");
+  res.render("home");
 });
 
 app.get('/about', (req, res) => {
+  console.log("GET /about - Rendering about");
   res.render("about");
 });
 
 app.get("/lego/sets", async (req, res) => {
+  console.log("GET /lego/sets - Fetching LEGO sets");
   let sets = [];
-  try {    
+  try {
     if (req.query.theme) {
       sets = await legoData.getSetsByTheme(req.query.theme);
     } else {
       sets = await legoData.getAllSets();
     }
+    console.log("Sets fetched successfully");
     res.render("sets", { sets });
   } catch (err) {
+    console.error("Error fetching sets:", err);
     res.status(404).render("404", { message: err });
   }
 });
 
 app.get("/lego/sets/:num", async (req, res) => {
+  console.log(`GET /lego/sets/${req.params.num} - Fetching set details`);
   try {
     let set = await legoData.getSetByNum(req.params.num);
+    console.log("Set details fetched successfully");
     res.render("set", { set });
   } catch (err) {
+    console.error("Error fetching set details:", err);
     res.status(404).render("404", { message: err });
   }
 });
 
 app.get('/lego/addSet', ensureLogin, (req, res) => {
+  console.log("GET /lego/addSet - Rendering addSet form");
   legoData.getAllThemes()
-    .then((themes) => {
-      res.render('addSet', { themes: themes });
-    })
-    .catch((err) => {
-      res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err}` });
-    });
+      .then((themes) => {
+          res.render('addSet', { themes: themes });
+      })
+      .catch((err) => {
+          console.error("Error fetching themes:", err);
+          res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err}` });
+      });
 });
 
 app.post('/lego/addSet', ensureLogin, (req, res) => {
+  console.log("POST /lego/addSet - Adding new set");
   const setData = req.body;
   legoData.addSet(setData)
-    .then(() => {
-      res.redirect('/lego/sets');
-    })
-    .catch((err) => {
-      res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err}` });
-    });
+      .then(() => {
+          res.redirect('/lego/sets');
+      })
+      .catch((err) => {
+          console.error("Error adding set:", err);
+          res.render('500', { message: `I'm sorry, but we have encountered the following error: ${err}` });
+      });
 });
 
 app.get('/lego/editSet/:num', ensureLogin, async (req, res) => {
+  console.log(`GET /lego/editSet/${req.params.num} - Rendering editSet form`);
   try {
     let setData = await legoData.getSetByNum(req.params.num);
     let themeData = await legoData.getAllThemes();
     res.render("editSet", { "themes": themeData, "set": setData });
   } catch (err) {
+    console.error("Error fetching set data for edit:", err);
     res.status(404).render('404', { message: err });
   }
 });
 
 app.post('/lego/editSet', ensureLogin, async (req, res) => {
+  console.log("POST /lego/editSet - Updating set");
   try {
     const setNum = req.body.set_num;
     const setData = req.body;
     await legoData.editSet(setNum, setData);
     res.redirect('/lego/sets');
   } catch (err) {
+    console.error("Error updating set:", err);
     res.render('500', { message: `I'm sorry, but we have encountered the error: ${err}` });
   }
 });
 
 app.get("/lego/deleteSet/:num", ensureLogin, (req, res) => {
-  legoData.deleteSet(req.params.num)
-    .then(() => {
-      res.redirect("/lego/sets");
-    })
-    .catch((err) => {
-      res.render("500", { message: `I'm sorry, but we have encountered the error: ${err}` });
-    });
+  console.log(`GET /lego/deleteSet/${req.params.num} - Deleting set`);
+  legoData.deleteSet(req.params.num).then(() => {
+    res.redirect("/lego/sets");
+  })
+  .catch((err) => {
+    console.error("Error deleting set:", err);
+    res.render("500", { message: `I'm sorry, but we have encountered the error: ${err}` });
+  });
 });
 
-app.get("/login", function(req, res) {
+app.get("/login", (req, res) => {
+  console.log("GET /login - Rendering login page");
   res.render("login", { 
     errorMessage: ""
   });
 });
 
-app.get("/register", function(req, res) { 
+app.get("/register", (req, res) => { 
+  console.log("GET /register - Rendering register page");
   res.render('register', { 
     errorMessage: "",
     successMessage: ""
   });
 });
 
-app.post("/register", function(req, res) {
+app.post("/register", (req, res) => {
+  console.log("POST /register - Registering new user");
   authData.registerUser(req.body)
-    .then(() => {
+  .then(() => {
       res.render('register', { successMessage: "User created!" });
-    })
-    .catch((err) => {
+  })
+  .catch((err) => {
+      console.error("Error registering user:", err);
       res.render('register', { errorMessage: err, userName: req.body.userName, successMessage: "" });
-    });
+  });
 });
 
-app.post("/login", function(req, res) {
+app.post("/login", (req, res) => {
+  console.log("POST /login - Logging in user");
   req.body.userAgent = req.get('User-Agent');
   authData.checkUser(req.body)
-    .then(function(user) {
+  .then((user) => {
       req.session.user = {
-        userName: user.userName,
-        email: user.email,
-        loginHistory: user.loginHistory
-      }
+          userName: user.userName,
+          email: user.email,
+          loginHistory: user.loginHistory
+      };
       res.redirect('/lego/sets');
-    })  
-    .catch(function(err) {
+  })
+  .catch((err) => {
+      console.error("Error logging in user:", err);
       res.render('login', { errorMessage: err, userName: req.body.userName });
-    });
+  });
 });
 
-app.get("/logout", function(req, res) {
+app.get("/logout", (req, res) => {
+  console.log("GET /logout - Logging out user");
   req.session.reset();
   res.redirect('/');
 });
 
-app.get("/userHistory", ensureLogin, function (req, res) {
+app.get("/userHistory", ensureLogin, (req, res) => {
+  console.log("GET /userHistory - Rendering user history");
   res.render('userHistory');
 }); 
 
 app.use((req, res, next) => {
+  console.log("404 - Page not found");
   res.status(404).render("404", { message: "I'm sorry, we're unable to find what you're looking for" });
 });
 
+// Start server
+console.log("Starting server initialization...");
 legoData.initialize()
-  .then(authData.initialize)
-  .then(function() {
+  .then(() => {
+    console.log("LEGO data initialized successfully.");
+    console.log("Starting authentication data initialization...");
+    return authData.initialize();
+  })
+  .then(() => {
+    console.log("Authentication data initialized successfully.");
     console.log("Initialization complete, starting the server...");
-    app.listen(HTTP_PORT, function() {
+    app.listen(HTTP_PORT, () => {
       console.log(`App listening on port ${HTTP_PORT}`);
     });
   })
-  .catch(function(err) {
-    console.error("Unable to start server:", err);
+  .catch((err) => {
+    console.error("Initialization error:", err);
   });
