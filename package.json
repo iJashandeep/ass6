@@ -1,0 +1,29 @@
+{
+  "name": "my-node-app",
+  "version": "1.0.0",
+  "description": "Assignment2",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "build": "echo 'Nothing to build'"
+  },
+  "keywords": [
+    "app"
+  ],
+  "author": "Jashandeep Singh",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "client-sessions": "^0.8.0",
+    "debug": "^4.3.6",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.8",
+    "express": "^4.19.2",
+    "mongodb": "^6.8.0",
+    "mongoose": "^8.5.2",
+    "pg": "^8.12.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.3"
+  }
+}

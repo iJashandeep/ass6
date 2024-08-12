@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="/css/tailwind.css">
+  <title>Lego Collection</title>
+</head>
+<body>
+  <%- include('partials/navbar', {page: ''}) %>
+
+  <div class="container mx-auto p-4 lg:px-0"> 
+    <div class="hero py-8 bg-base-200 rounded-lg">
+      <div class="hero-content text-center">
+        <div class="max-w-md">
+          <h1 class="text-5xl font-bold">Welcome </h1>
+          <p class="py-6">Explore our wide range of Lego sets, where you can unleash your creativity and build anything you can imagine. </p>
+          <a href="/lego/sets"><button class="btn btn-primary">Join us</button></a>
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+      <div class="card w-full bg-base-100 shadow-xl">
+        <figure>
+          <img class="w-full h-64 object-cover" src="https://cdn.rebrickable.com/media/sets/021-1.jpg" alt="Shoes" />
+        </figure>
+        <div class="card-body">
+          <h2 class="card-title">Wheel Set</h2>
+          <p>Wheel Set offers a diverse selection of tires, rims, and axles for building various vehicles, perfect for adding motion and excitement to your creations.</p>
+          <div class="card-actions justify-end">
+            <a href="/lego/sets/021-1"><button class="btn btn-primary">View</button></a>
+          </div>
+        </div>
+      </div>
+      <div class="card w-full bg-base-100 shadow-xl">
+        <figure>
+          <img class="w-full h-64 object-cover" src="https://cdn.rebrickable.com/media/sets/0011-2.jpg" alt="Shoes" />
+        </figure>
+        <div class="card-body">
+          <h2 class="card-title">Town Mini-Figures</h2>
+          <p>Town Mini Figures collection brings diverse characters to life, perfect for creating vibrant city scenes. With unique designs and accessories, these mini figures spark endless creativity and storytelling in builders of all ages. </p>
+          <div class="card-actions justify-end">
+            <a href="/lego/sets/0011-2"><button class="btn btn-primary">View</button></a>
+          </div>
+        </div>
+      </div>
+      <div class="card w-full bg-base-100 shadow-xl">
+        <figure>
+          <img class="w-full h-64 object-cover" src="https://cdn.rebrickable.com/media/sets/011-1.jpg" alt="Shoes" />
+        </figure>
+        <div class="card-body">
+          <h2 class="card-title">Basic Building Set</h2>
+          <p>Basic Building Set by Lego offers a versatile collection of bricks to inspire endless creativity. With various shapes, it's perfect for constructing anything from simple structures to elaborate designs.</p>
+          <div class="card-actions justify-end">
+            <a href="/lego/sets/011-1"><button class="btn btn-primary">View</button></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
