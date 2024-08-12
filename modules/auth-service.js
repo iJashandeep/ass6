@@ -3,6 +3,9 @@ const mongoose = require("mongoose");
 
 require('dotenv').config();
 
+mongoose.connect('mongodb+srv://jashandeepsingh13:svATz3EgphANUXAH@cluster0.zs2sn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0');
+
+
 let Schema = mongoose.Schema;
 
 var userSchema = new Schema({
